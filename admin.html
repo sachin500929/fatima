@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fatima Youth Federation - Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="glass-card">
+        <div class="nav-brand">
+            <i class="fas fa-shield-alt"></i> Admin Panel
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i> Home</a>
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </nav>
+
+    <div class="main-container" style="display: block; max-width: 1000px;">
+        <div class="admin-stats">
+            <div class="glass-card stat-card">
+                <h3>{{ total_users }}</h3>
+                <p>Registered Users</p>
+            </div>
+            <div class="glass-card stat-card">
+                <h3>{{ total_posts }}</h3>
+                <p>Total Posts</p>
+            </div>
+        </div>
+
+        <div class="glass-card" style="padding: 2rem; margin-bottom: 2rem;">
+            <div class="sidebar-title"><i class="fas fa-users"></i> Users List</div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Posts</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email or 'N/A' }}</td>
+                            <td>{{ user.role }}</td>
+                            <td>{{ user.posts | length }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass-card" style="padding: 2rem;">
+            <div class="sidebar-title"><i class="fas fa-images"></i> Manage Posts</div>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Caption</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in posts %}
+                        <tr>
+                            <td>{{ post.author.username }}</td>
+                            <td>{{ post.caption[:30] }}{% if post.caption|length > 30 %}...{% endif %}</td>
+                            <td>{{ post.file_type }}</td>
+                            <td>{{ post.timestamp.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" onsubmit="return confirm('Really delete?')">
+                                    <button type="submit" style="background: #ef4444; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

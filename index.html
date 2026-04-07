@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fatima Youth Federation - Feed</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="glass-card">
+        <div class="nav-brand">
+            <i class="fas fa-users-rays"></i> Fatima Youth
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a>
+            {% if current_user.role == 'admin' %}
+            <a href="{{ url_for('admin_panel') }}"><i class="fas fa-shield-alt"></i> Admin</a>
+            {% endif %}
+            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Sidebar Left -->
+        <div class="sidebar-left">
+            <div class="glass-card sidebar-profile">
+                <div class="user-avatar profile-avatar">
+                    {{ current_user.username[0].upper() }}
+                </div>
+                <h3>{{ current_user.username }}</h3>
+                <p class="profile-role">Fatima Youth Member</p>
+            </div>
+        </div>
+
+        <!-- Feed Section -->
+        <main>
+            <!-- Upload Post -->
+            <div class="glass-card upload-card">
+                <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+                    <textarea name="caption" class="upload-input" placeholder="What's on your mind, {{ current_user.username }}?" rows="3"></textarea>
+                    <div class="upload-controls">
+                        <label class="file-btn">
+                            <i class="fas fa-image"></i> Media
+                            <input type="file" name="file" accept="image/*,video/*,application/pdf" style="display: none;">
+                        </label>
+                        <button type="submit" class="submit-btn">Post <i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Posts -->
+            {% for post in posts %}
+            <div class="glass-card post-card" id="post-{{ post.id }}">
+                <div class="post-header">
+                    <div class="user-avatar">{{ post.author.username[0].upper() }}</div>
+                    <div class="post-meta">
+                        <h4>{{ post.author.username }}</h4>
+                        <small>{{ post.timestamp.strftime('%B %d %Y, %H:%M') }}</small>
+                    </div>
+                </div>
+                <div class="post-content">
+                    {% if post.caption %}
+                    <p class="post-caption">{{ post.caption }}</p>
+                    {% endif %}
+                    
+                    {% if post.file_type == 'image' %}
+                    <img src="{{ url_for('static', filename='uploads/' + post.file_path) }}" class="post-media" alt="Post content">
+                    {% elif post.file_type == 'video' %}
+                    <video controls class="post-media">
+                        <source src="{{ url_for('static', filename='uploads/' + post.file_path) }}">
+                    </video>
+                    {% elif post.file_type == 'document' %}
+                    <a href="{{ url_for('static', filename='uploads/' + post.file_path) }}" class="post-doc-link" target="_blank">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>{{ post.file_path.split('_', 2)[-1] }} (Click to view/download)</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="post-actions">
+                    <button class="action-btn react-btn" data-post-id="{{ post.id }}" data-type="like">
+                        <i class="fa-regular fa-thumbs-up" id="like-icon-{{ post.id }}"></i> 
+                        <span id="like-count-{{ post.id }}">{{ post.reactions | selectattr('type', 'equalto', 'like') | list | length }}</span>
+                    </button>
+                    <button class="action-btn react-btn" data-post-id="{{ post.id }}" data-type="heart">
+                        <i class="fa-regular fa-heart" id="heart-icon-{{ post.id }}"></i> 
+                        <span id="heart-count-{{ post.id }}">{{ post.reactions | selectattr('type', 'equalto', 'heart') | list | length }}</span>
+                    </button>
+                    <button class="action-btn react-btn" data-post-id="{{ post.id }}" data-type="sad">
+                        <i class="fa-regular fa-face-sad-tear" id="sad-icon-{{ post.id }}"></i> 
+                        <span id="sad-count-{{ post.id }}">{{ post.reactions | selectattr('type', 'equalto', 'sad') | list | length }}</span>
+                    </button>
+                </div>
+
+                <!-- Comment Section -->
+                <div class="comments-section">
+                    {% for comment in post.comments %}
+                    <div class="comment-item">
+                        <strong class="comment-author">{{ comment.username }}</strong>: {{ comment.text }}
+                    </div>
+                    {% endfor %}
+                    
+                    <form action="{{ url_for('comment', post_id=post.id) }}" method="POST" class="comment-form">
+                        <input type="text" name="comment_text" placeholder="Write a comment..." class="comment-input">
+                        <button type="submit" class="comment-btn"><i class="fas fa-comment"></i></button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </main>
+
+        <!-- Sidebar Right -->
+        <div class="sidebar-right">
+            <div class="glass-card" style="padding: 1.5rem;">
+                <div class="sidebar-title"><i class="fas fa-bolt"></i> Recent Activity</div>
+                <div class="activity-list">
+                    {% for activity in activities %}
+                    <div class="activity-item">
+                        {{ activity.description }}
+                        <small>{{ activity.timestamp.strftime('%H:%M %p') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
